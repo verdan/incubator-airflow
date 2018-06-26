@@ -17,24 +17,12 @@
  * under the License.
  */
 
-import React, { Component } from "react";
-import Header from "./components/header";
-import "./App.css";
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./../../App";
 
-class App extends Component {
-  render() {
-    return (
-      <div>
-        <Header />
-        <div className="container">
-          <header>
-            <h1 className="App-title">Apache Airflow (incubating)</h1>
-          </header>
-          <p className="App-intro">Home Page</p>
-        </div>
-      </div>
-    );
-  }
-}
-
-export default App;
+it("renders without crashing", () => {
+  const div = document.createElement("div");
+  ReactDOM.render(<App />, div);
+  ReactDOM.unmountComponentAtNode(div);
+});

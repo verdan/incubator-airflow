@@ -38,6 +38,18 @@ class Header extends React.Component {
           <NavItem eventKey={2} href="#">
             Security
           </NavItem>
+          <NavItem eventKey={1} href="#">
+            Browse
+          </NavItem>
+          <NavItem eventKey={1} href="#">
+            Admin
+          </NavItem>
+          <NavItem eventKey={1} href="#">
+            Docs
+          </NavItem>
+          <NavItem eventKey={1} href="#">
+            About
+          </NavItem>
         </Nav>
       </Navbar>
     );
