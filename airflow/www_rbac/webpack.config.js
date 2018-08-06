@@ -37,7 +37,6 @@ const config = {
     connectionForm: `${STATIC_DIR}/js/connection_form.js`,
     layout: `${STATIC_DIR}/js/layout.js`,
     dag: `${STATIC_DIR}/js/dag.js`,
-    tiModal: `${STATIC_DIR}/js/tiModal.js`,
     graph: `${STATIC_DIR}/js/graph.js`,
     ganttChartD3v2: `${STATIC_DIR}/js/gantt-chart-d3v2.js`,
     main: [

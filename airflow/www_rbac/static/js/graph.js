@@ -18,7 +18,7 @@
  */
 
 import {converAndFormatUTC, generateTooltipDateTime} from './datetime-utils';
-import {callTaskInstanceModal} from './tiModal';
+import {callTaskInstanceModal} from './ti-modal';
 
 // Assigning css classes based on state to nodes
 // Initiating the tooltips
