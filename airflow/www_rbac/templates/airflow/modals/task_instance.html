@@ -1,0 +1,149 @@
+{#
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+#}
+
+<div class="modal fade" id="myModal"
+     tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel">
+          <span id='task_id'></span>
+          <button id="btn_filter" type="button" class="btn btn-default" title="Filter on this task and upstream ">
+            <span class="glyphicon glyphicon-filter" style="margin-left: 0px;" aria-hidden="true"></span>
+          </button>
+          on
+          <span id='execution_date'></span>
+        </h4>
+      </div>
+      <div class="modal-body">
+        <div id="div_btn_subdag">
+          <button id="btn_subdag" data-url="{{ url_for( 'Airflow.' + dag.default_view ) }}" type="button" class="btn btn-primary">
+            Zoom into Sub DAG
+          </button>
+          <hr/>
+        </div>
+        <button id="btn_task" data-url="{{ url_for('Airflow.task') }}" type="button" class="btn btn-primary">
+          Task Instance Details
+        </button>
+        <a id="btn_rendered" data-url="{{ url_for('Airflow.rendered') }}" type="button" class="btn btn-primary">
+          Rendered
+        </a>
+        <button id="btn_ti" data-url="{{ url_for('TaskInstanceModelView.list') }}" type="button" class="btn btn-primary">
+          Task Instances
+        </button>
+        <button id="btn_log" data-url="{{ url_for('Airflow.log') }}" type="button" class="btn btn-primary">
+          View Log
+        </button>
+        <hr/>
+        <button id="btn_run" data-url="{{ url_for('Airflow.run') }}" type="button" class="btn btn-primary"
+                title="Runs a single task instance">
+          Run
+        </button>
+        <span class="btn-group">
+            <button id="btn_ignore_all_deps"
+                    type="button" class="btn" data-toggle="button"
+                    title="Ignores all non-critical dependencies, including task state and task_deps"
+            >Ignore All Deps</button>
+          </span>
+        <span class="btn-group">
+            <button id="btn_ignore_ti_state"
+                    type="button" class="btn" data-toggle="button"
+                    title="Ignore previous success/failure"
+            >Ignore Task State</button>
+          </span>
+        <button id="btn_ignore_task_deps"
+                type="button" class="btn" data-toggle="button"
+                title="Disregard the task-specific dependencies, e.g. status of upstream task instances and depends_on_past"
+        >Ignore Task Deps
+        </button>
+        </span>
+        <hr/>
+        <button id="btn_clear" type="button" class="btn btn-primary" data-url="{{ url_for('Airflow.clear') }}"
+                title="Clearing deletes the previous state of the task instance, allowing it to get re-triggered by the scheduler or a backfill command"
+        >Clear
+        </button>
+        <span class="btn-group">
+            <button id="btn_past"
+                    type="button" class="btn" data-toggle="button"
+                    title="Also include past task instances when clearing this one"
+            >Past</button>
+            <button id="btn_future"
+                    type="button" class="btn" data-toggle="button"
+                    title="Also include future task instances when clearing this one"
+            >Future</button>
+            <button id="btn_upstream"
+                    type="button" class="btn" data-toggle="button"
+                    title="Also include upstream dependencies"
+            >Upstream</button>
+            <button id="btn_downstream"
+                    type="button" class="btn active" data-toggle="button"
+                    title="Also include downstream dependencies"
+            >
+              Downstream
+            </button>
+            <button id="btn_recursive"
+                    type="button" class="btn active" data-toggle="button">
+               Recursive
+            </button>
+          </span>
+        <hr/>
+        <button id="btn_failed" type="button" class="btn btn-primary" data-url="{{ url_for('Airflow.failed') }}">
+          Mark Failed
+        </button>
+        <span class="btn-group">
+            <button id="btn_failed_past"
+                    type="button" class="btn" data-toggle="button">Past</button>
+            <button id="btn_failed_future"
+                    type="button" class="btn" data-toggle="button">
+              Future
+            </button>
+            <button id="btn_failed_upstream"
+                    type="button" class="btn" data-toggle="button">Upstream</button>
+            <button id="btn_failed_downstream"
+                    type="button" class="btn" data-toggle="button">
+              Downstream
+            </button>
+          </span>
+        <hr/>
+        <button id="btn_success" type="button" class="btn btn-primary" data-url="{{ url_for('Airflow.success') }}">
+          Mark Success
+        </button>
+        <span class="btn-group">
+            <button id="btn_success_past"
+                    type="button" class="btn" data-toggle="button">Past</button>
+            <button id="btn_success_future"
+                    type="button" class="btn" data-toggle="button">
+              Future
+            </button>
+            <button id="btn_success_upstream"
+                    type="button" class="btn" data-toggle="button">Upstream</button>
+            <button id="btn_success_downstream"
+                    type="button" class="btn" data-toggle="button">
+              Downstream
+            </button>
+          </span>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

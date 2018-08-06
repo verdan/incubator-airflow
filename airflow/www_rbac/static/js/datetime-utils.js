@@ -17,7 +17,7 @@
  * under the License.
  */
 
-export const moment = require('moment-timezone');
+const moment = require('moment-timezone');
 export const defaultFormat = 'YYYY-MM-DD, HH:mm:ss';
 export const defaultFormatWithTZ = 'YYYY-MM-DD, HH:mm:ss z';
 

@@ -17,7 +17,8 @@
  * under the License.
  */
 
-import { generateTooltipDateTime, converAndFormatUTC } from './datetime-utils';
+import {converAndFormatUTC, generateTooltipDateTime} from './datetime-utils';
+import {callTaskInstanceModal} from './tiModal';
 
 // Assigning css classes based on state to nodes
 // Initiating the tooltips
@@ -70,5 +71,17 @@ function initRefreshButton() {
   );
 }
 
+
+function initTaskInstanceModal() {
+  d3.selectAll("g.node").on("click", function (d) {
+    const task = tasks[d];
+    if (task.task_type == "SubDagOperator")
+      callTaskInstanceModal(d, execution_date, true);
+    else
+      callTaskInstanceModal(d, execution_date);
+  });
+}
+
 initRefreshButton();
 update_nodes_states(task_instances);
+initTaskInstanceModal();

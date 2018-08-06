@@ -35,10 +35,12 @@ const BUILD_DIR = path.resolve(__dirname, './static/dist');
 const config = {
   entry: {
     connectionForm: `${STATIC_DIR}/js/connection_form.js`,
-    clock: `${STATIC_DIR}/js/clock.js`,
+    layout: `${STATIC_DIR}/js/layout.js`,
+    dag: `${STATIC_DIR}/js/dag.js`,
+    tiModal: `${STATIC_DIR}/js/tiModal.js`,
     graph: `${STATIC_DIR}/js/graph.js`,
     ganttChartD3v2: `${STATIC_DIR}/js/gantt-chart-d3v2.js`,
-    styleBundle: [
+    main: [
       `${STATIC_DIR}/css/bootstrap-theme.css`,
       `${STATIC_DIR}/css/main.css`,
     ],

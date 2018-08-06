@@ -17,20 +17,38 @@
  * under the License.
  */
 
-import {defaultFormatWithTZ, moment} from './datetime-utils';
+import {defaultFormatWithTZ} from './datetime-utils';
+const moment = require('moment-timezone');
 
-function displayTime() {
+const displayTime = () => {
   let utcTime = moment().utc().format(defaultFormatWithTZ);
   $('#clock')
-    .attr("data-original-title", function() {
-      return hostName
+    .attr("data-original-title", function () {
+      return $('#hostname').data('hostname');
     })
     .html(utcTime);
 
   setTimeout(displayTime, 1000);
-}
+};
+
+
+const ajaxSetup = () => {
+  $.ajaxSetup({
+    beforeSend: function (xhr, settings) {
+      if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+        xhr.setRequestHeader("X-CSRFToken", $('#csrf').data('csrf-token'));
+      }
+    }
+  });
+};
 
 $(document).ready(function () {
+  // Live Clock in top navbar
   displayTime();
+
+  // Set CSRF token for ajax calls
+  ajaxSetup();
+
+  // Initiate Tooltip for whole application
   $('span').tooltip();
 });
