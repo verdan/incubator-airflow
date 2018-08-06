@@ -60,14 +60,14 @@ $("#btn_rendered").click(function () {
     "&execution_date=" + execDate;
 });
 
-// Done
+
 $("#btn_subdag").click(function () {
   window.location = $(this).data('url') +
     "?dag_id=" + subDagID +
     "&execution_date=" + execDate;
 });
 
-// Done
+
 $("#btn_log").click(function () {
   window.location = $(this).data('url') +
     "?task_id=" + taskID +
@@ -75,7 +75,7 @@ $("#btn_log").click(function () {
     "&execution_date=" + execDate;
 });
 
-// Done
+
 $("#btn_task").click(function () {
   window.location = $(this).data('url') +
     "?task_id=" + taskID +
@@ -83,7 +83,7 @@ $("#btn_task").click(function () {
     "&execution_date=" + execDate;
 });
 
-// Done
+
 $("#btn_ti").click(function () {
   window.location = $(this).data('url') +
     "?flt1_dag_id_equals=" + dagID +
@@ -91,7 +91,7 @@ $("#btn_ti").click(function () {
     "&_oc_TaskInstanceModelView=" + execDate;
 });
 
-// Done
+
 $("#btn_run").click(function () {
   window.location = $(this).data('url') +
     "?task_id=" + taskID +
@@ -103,7 +103,7 @@ $("#btn_run").click(function () {
     "&origin=" + encodeURIComponent(window.location);
 });
 
-// Done
+
 $("#btn_clear").click(function () {
   window.location = $(this).data('url') +
     "?task_id=" + taskID +
@@ -117,7 +117,7 @@ $("#btn_clear").click(function () {
     "&origin=" + encodeURIComponent(window.location);
 });
 
-// Done
+
 $("#btn_failed").click(function () {
   window.location = $(this).data('url') +
     "?task_id=" + taskID +
@@ -130,7 +130,7 @@ $("#btn_failed").click(function () {
     "&origin=" + encodeURIComponent(window.location);
 });
 
-// Done
+
 $("#btn_success").click(function () {
   window.location = $(this).data('url') +
     "?task_id=" + taskID +
