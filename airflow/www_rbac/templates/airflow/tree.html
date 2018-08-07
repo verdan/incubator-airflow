@@ -73,6 +73,12 @@
         </filter>
     </svg>
 </div>
+  <!-- Task Instance Modal -->
+  {% include "airflow/modals/task_instance.html" %}
+
+  <!-- Modal for dag, Only used in Tree.html-->
+  {% include "airflow/modals/dag_operations.html" %}
+
 {% endblock %}
 
 {% block tail %}

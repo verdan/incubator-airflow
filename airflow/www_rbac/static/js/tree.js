@@ -64,6 +64,7 @@ const updateTaskInstanceStates = (nodeEnter, nodeobj) => {
     .style("stroke-opacity", d => d.external_trigger ? "0" : "1")
     .attr("data-toggle", "tooltip")
     .attr("data-original-title", d => {
+      const dagTZ = $('#dag-tz').data('dag-tz');
       let tt = "Task ID: " + d.task_id + "<br>";
       tt += "Run: " + converAndFormatUTC(d.execution_date) + "<br>";
       if (d.run_id != undefined) {
@@ -73,7 +74,7 @@ const updateTaskInstanceStates = (nodeEnter, nodeobj) => {
       if (d.start_date != undefined) {
         tt += "Duration: " + d.duration + "<br>";
         tt += "State: " + d.state + "<br>";
-        tt += generateTooltipDateTime(d.start_date, d.end_date, dagTZ); // dagTZ has been defined in dag.html
+        tt += generateTooltipDateTime(d.start_date, d.end_date, dagTZ);
       }
       return tt;
     })

@@ -31,6 +31,7 @@ function updateNodesStates(task_instances) {
       .attr("class", "node enter " + ti.state)
       .attr("data-toggle", "tooltip")
       .attr("data-original-title", function (d) {
+        const dagTZ = $('#dag-tz').data('dag-tz');
         // Tooltip
         let tt = "Task ID: " + ti.task_id + "<br>";
         tt += "Run: " + converAndFormatUTC(ti.execution_date) + "<br>";
@@ -40,7 +41,7 @@ function updateNodesStates(task_instances) {
         tt += "Operator: " + ti.operator + "<br>";
         tt += "Duration: " + ti.duration + "<br>";
         tt += "State: " + ti.state + "<br>";
-        tt += generateTooltipDateTime(ti.start_date, ti.end_date, dagTZ); // dagTZ has been defined in dag.html
+        tt += generateTooltipDateTime(ti.start_date, ti.end_date, dagTZ);
         return tt;
       });
   });

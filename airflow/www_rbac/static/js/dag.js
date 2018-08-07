@@ -17,13 +17,14 @@
  * under the License.
  */
 
+require('bootstrap-toggle');
+
 const highlightPills = (pathName) => {
   $(`a[href*="${pathName}"]`).parent().addClass('active');
   $('.never_active').removeClass('active');
 };
 
-const confirmDeleteDag = () => {
-  const dagID = $('#dag-id').data('dag-id');
+const confirmDeleteDag = (dagID) => {
   $("#btn_delete_dag").click(function () {
     return confirm(`
     Are you sure you want to delete '${dagID}' now?
@@ -33,10 +34,22 @@ const confirmDeleteDag = () => {
 };
 
 
+const initPauseResume = (dagID) => {
+  $("#pause_resume").change(function () {
+    const isPaused = $(this).prop('checked') ? 'true' : 'false';
+    $.post($(this).data('url') + '?is_paused=' + isPaused + '&dag_id=' + encodeURIComponent(dagID));
+  });
+};
+
+
 $(document).ready(function () {
+  const dagID = $('#dag-id').data('dag-id');
+
   // Highlight active pill
   highlightPills(this.location.pathname);
 
-  confirmDeleteDag();
+  confirmDeleteDag(dagID);
+
+  initPauseResume(dagID)
 
 });

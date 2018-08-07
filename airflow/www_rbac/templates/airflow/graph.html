@@ -87,6 +87,8 @@
     </svg>
     <img id="loading" alt="spinner" src="{{ url_for('static', filename='loading.gif') }}">
 </div>
+  <!-- Task Instance Modal -->
+  {% include "airflow/modals/task_instance.html" %}
 <hr>
 {% endblock %}
 
