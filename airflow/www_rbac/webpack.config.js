@@ -38,6 +38,7 @@ const config = {
     layout: `${STATIC_DIR}/js/layout.js`,
     dag: `${STATIC_DIR}/js/dag.js`,
     graph: `${STATIC_DIR}/js/graph.js`,
+    tree: `${STATIC_DIR}/js/tree.js`,
     ganttChartD3v2: `${STATIC_DIR}/js/gantt-chart-d3v2.js`,
     main: [
       `${STATIC_DIR}/css/bootstrap-theme.css`,

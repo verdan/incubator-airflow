@@ -17,11 +17,6 @@
  * under the License.
  */
 
-let taskID = '';
-let execDate = '';
-let subDagID = '';
-let dagID = $('#dag-id').data('dag-id');
-
 const updateQueryStringParameter = (ti) => {
   const uri = String(window.location);
   const re = new RegExp("([?&])root=.*?(&|$)", "i");
@@ -34,7 +29,104 @@ const updateQueryStringParameter = (ti) => {
   }
 };
 
+
+const initModalButtons = (dagID, taskID, execDate, subDagID) => {
+  $("#btn_rendered").click(function () {
+    window.location = $(this).data('url') +
+      "?task_id=" + taskID +
+      "&dag_id=" + dagID +
+      "&execution_date=" + execDate;
+  });
+
+
+  $("#btn_subdag").click(function () {
+    window.location = $(this).data('url') +
+      "?dag_id=" + subDagID +
+      "&execution_date=" + execDate;
+  });
+
+
+  $("#btn_log").click(function () {
+    window.location = $(this).data('url') +
+      "?task_id=" + taskID +
+      "&dag_id=" + dagID +
+      "&execution_date=" + execDate;
+  });
+
+
+  $("#btn_task").click(function () {
+    window.location = $(this).data('url') +
+      "?task_id=" + taskID +
+      "&dag_id=" + dagID +
+      "&execution_date=" + execDate;
+  });
+
+
+  $("#btn_ti").click(function () {
+    window.location = $(this).data('url') +
+      "?flt1_dag_id_equals=" + dagID +
+      "&_flt_3_task_id=" + taskID +
+      "&_oc_TaskInstanceModelView=" + execDate;
+  });
+
+
+  $("#btn_run").click(function () {
+    window.location = $(this).data('url') +
+      "?task_id=" + taskID +
+      "&dag_id=" + dagID +
+      "&ignore_all_deps=" + $('#btn_ignore_all_deps').hasClass('active') +
+      "&ignore_task_deps=" + $('#btn_ignore_task_deps').hasClass('active') +
+      "&ignore_ti_state=" + $('#btn_ignore_ti_state').hasClass('active') +
+      "&execution_date=" + execDate +
+      "&origin=" + encodeURIComponent(window.location);
+  });
+
+
+  $("#btn_clear").click(function () {
+    window.location = $(this).data('url') +
+      "?task_id=" + taskID +
+      "&dag_id=" + dagID +
+      "&future=" + $('#btn_future').hasClass('active') +
+      "&past=" + $('#btn_past').hasClass('active') +
+      "&upstream=" + $('#btn_upstream').hasClass('active') +
+      "&downstream=" + $('#btn_downstream').hasClass('active') +
+      "&recursive=" + $('#btn_recursive').hasClass('active') +
+      "&execution_date=" + execDate +
+      "&origin=" + encodeURIComponent(window.location);
+  });
+
+
+  $("#btn_failed").click(function () {
+    window.location = $(this).data('url') +
+      "?task_id=" + taskID +
+      "&dag_id=" + dagID +
+      "&upstream=" + $('#btn_failed_upstream').hasClass('active') +
+      "&downstream=" + $('#btn_failed_downstream').hasClass('active') +
+      "&future=" + $('#btn_failed_future').hasClass('active') +
+      "&past=" + $('#btn_failed_past').hasClass('active') +
+      "&execution_date=" + execDate +
+      "&origin=" + encodeURIComponent(window.location);
+  });
+
+
+  $("#btn_success").click(function () {
+    window.location = $(this).data('url') +
+      "?task_id=" + taskID +
+      "&dag_id=" + dagID +
+      "&upstream=" + $('#btn_success_upstream').hasClass('active') +
+      "&downstream=" + $('#btn_success_downstream').hasClass('active') +
+      "&future=" + $('#btn_success_future').hasClass('active') +
+      "&past=" + $('#btn_success_past').hasClass('active') +
+      "&execution_date=" + execDate +
+      "&origin=" + encodeURIComponent(window.location);
+  });
+};
+
 export const callTaskInstanceModal = (ti, d, sd) => {
+  // DagID fetched from data attribute in dag.html file
+  let dagID = $('#dag-id').data('dag-id');
+  let subDagID = '';
+
   $("#btn_filter").on("click", function () {
     window.location = updateQueryStringParameter(ti);
   });
@@ -49,96 +141,8 @@ export const callTaskInstanceModal = (ti, d, sd) => {
     subDagID = encodeURIComponent(`${dagID}.${ti}`);
   }
   dagID = encodeURIComponent(dagID);
-  taskID = encodeURIComponent(ti);
-  execDate = encodeURIComponent(d);
+  const taskID = encodeURIComponent(ti);
+  const execDate = encodeURIComponent(d);
+
+  initModalButtons(dagID, taskID, execDate, subDagID)
 };
-
-$("#btn_rendered").click(function () {
-  window.location = $(this).data('url') +
-    "?task_id=" + taskID +
-    "&dag_id=" + dagID +
-    "&execution_date=" + execDate;
-});
-
-
-$("#btn_subdag").click(function () {
-  window.location = $(this).data('url') +
-    "?dag_id=" + subDagID +
-    "&execution_date=" + execDate;
-});
-
-
-$("#btn_log").click(function () {
-  window.location = $(this).data('url') +
-    "?task_id=" + taskID +
-    "&dag_id=" + dagID +
-    "&execution_date=" + execDate;
-});
-
-
-$("#btn_task").click(function () {
-  window.location = $(this).data('url') +
-    "?task_id=" + taskID +
-    "&dag_id=" + dagID +
-    "&execution_date=" + execDate;
-});
-
-
-$("#btn_ti").click(function () {
-  window.location = $(this).data('url') +
-    "?flt1_dag_id_equals=" + dagID +
-    "&_flt_3_task_id=" + taskID +
-    "&_oc_TaskInstanceModelView=" + execDate;
-});
-
-
-$("#btn_run").click(function () {
-  window.location = $(this).data('url') +
-    "?task_id=" + taskID +
-    "&dag_id=" + dagID +
-    "&ignore_all_deps=" + $('#btn_ignore_all_deps').hasClass('active') +
-    "&ignore_task_deps=" + $('#btn_ignore_task_deps').hasClass('active') +
-    "&ignore_ti_state=" + $('#btn_ignore_ti_state').hasClass('active') +
-    "&execution_date=" + execDate +
-    "&origin=" + encodeURIComponent(window.location);
-});
-
-
-$("#btn_clear").click(function () {
-  window.location = $(this).data('url') +
-    "?task_id=" + taskID +
-    "&dag_id=" + dagID +
-    "&future=" + $('#btn_future').hasClass('active') +
-    "&past=" + $('#btn_past').hasClass('active') +
-    "&upstream=" + $('#btn_upstream').hasClass('active') +
-    "&downstream=" + $('#btn_downstream').hasClass('active') +
-    "&recursive=" + $('#btn_recursive').hasClass('active') +
-    "&execution_date=" + execDate +
-    "&origin=" + encodeURIComponent(window.location);
-});
-
-
-$("#btn_failed").click(function () {
-  window.location = $(this).data('url') +
-    "?task_id=" + taskID +
-    "&dag_id=" + dagID +
-    "&upstream=" + $('#btn_failed_upstream').hasClass('active') +
-    "&downstream=" + $('#btn_failed_downstream').hasClass('active') +
-    "&future=" + $('#btn_failed_future').hasClass('active') +
-    "&past=" + $('#btn_failed_past').hasClass('active') +
-    "&execution_date=" + execDate +
-    "&origin=" + encodeURIComponent(window.location);
-});
-
-
-$("#btn_success").click(function () {
-  window.location = $(this).data('url') +
-    "?task_id=" + taskID +
-    "&dag_id=" + dagID +
-    "&upstream=" + $('#btn_success_upstream').hasClass('active') +
-    "&downstream=" + $('#btn_success_downstream').hasClass('active') +
-    "&future=" + $('#btn_success_future').hasClass('active') +
-    "&past=" + $('#btn_success_past').hasClass('active') +
-    "&execution_date=" + execDate +
-    "&origin=" + encodeURIComponent(window.location);
-});

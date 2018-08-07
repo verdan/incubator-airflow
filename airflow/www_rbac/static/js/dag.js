@@ -22,8 +22,21 @@ const highlightPills = (pathName) => {
   $('.never_active').removeClass('active');
 };
 
+const confirmDeleteDag = () => {
+  const dagID = $('#dag-id').data('dag-id');
+  $("#btn_delete_dag").click(function () {
+    return confirm(`
+    Are you sure you want to delete '${dagID}' now?
+    This option will delete ALL metadata, DAG runs, etc.
+    This cannot be undone.`);
+  });
+};
+
+
 $(document).ready(function () {
   // Highlight active pill
   highlightPills(this.location.pathname);
+
+  confirmDeleteDag();
 
 });

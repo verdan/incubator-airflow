@@ -22,7 +22,7 @@ import {callTaskInstanceModal} from './ti-modal';
 
 // Assigning css classes based on state to nodes
 // Initiating the tooltips
-function update_nodes_states(task_instances) {
+function updateNodesStates(task_instances) {
   $.each(task_instances, function (task_id, ti) {
     $('tspan').filter(function (index) {
       return $(this).text() === task_id;
@@ -82,6 +82,9 @@ function initTaskInstanceModal() {
   });
 }
 
+
 initRefreshButton();
-update_nodes_states(task_instances);
+updateNodesStates(task_instances);
 initTaskInstanceModal();
+
+

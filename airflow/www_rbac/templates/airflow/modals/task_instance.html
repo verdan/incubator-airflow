@@ -33,7 +33,8 @@ limitations under the License.
       </div>
       <div class="modal-body">
         <div id="div_btn_subdag">
-          <button id="btn_subdag" data-url="{{ url_for( 'Airflow.' + dag.default_view ) }}" type="button" class="btn btn-primary">
+          <button id="btn_subdag" data-url="{{ url_for( 'Airflow.' + dag.default_view ) }}" type="button"
+                  class="btn btn-primary">
             Zoom into Sub DAG
           </button>
           <hr/>
@@ -44,7 +45,8 @@ limitations under the License.
         <a id="btn_rendered" data-url="{{ url_for('Airflow.rendered') }}" type="button" class="btn btn-primary">
           Rendered
         </a>
-        <button id="btn_ti" data-url="{{ url_for('TaskInstanceModelView.list') }}" type="button" class="btn btn-primary">
+        <button id="btn_ti" data-url="{{ url_for('TaskInstanceModelView.list') }}" type="button"
+                class="btn btn-primary">
           Task Instances
         </button>
         <button id="btn_log" data-url="{{ url_for('Airflow.log') }}" type="button" class="btn btn-primary">

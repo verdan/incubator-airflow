@@ -97,6 +97,7 @@ var i = 0,
 
 var tree = d3.layout.tree().nodeSize([0, 25]);
 var nodes = tree.nodes(data);
+var nodeEnter = {};
 var nodeobj = {};
 for (i=0; i<nodes.length; i++) {
     node = nodes[i];
@@ -185,7 +186,7 @@ function update(source) {
   var node = svg.selectAll("g.node")
       .data(nodes, function(d) { return d.id || (d.id = ++i); });
 
-  var nodeEnter = node.enter().append("g")
+  nodeEnter = node.enter().append("g")
   .attr("class", node_class)
   .attr("transform", function(d) {
     return "translate(" + source.y0 + "," + source.x0 + ")";
@@ -223,55 +224,55 @@ function update(source) {
   text.attr("class", "blur");
   {% endif %}
 
-  nodeEnter.append('g')
-      .attr("class", "stateboxes")
-      .attr("transform",
-        function(d, i) { return "translate(" + (square_x-d.y) + ",0)"; })
-      .selectAll("rect").data(function(d) { return d.instances; })
-      .enter()
-      .append('rect')
-      .on("click", function(d){
-        if(d.task_id === undefined)
-            call_modal_dag(d);
-        else if(nodeobj[d.task_id].operator=='SubDagOperator')
-            call_modal(d.task_id, d.execution_date, true);
-        else
-            call_modal(d.task_id, d.execution_date);
-      })
-      .attr("class", function(d) {return "state " + d.state})
-      .attr("data-toggle", "tooltip")
-      .attr("rx", function(d) {return (d.run_id != undefined)? "5": "0"})
-      .attr("ry", function(d) {return (d.run_id != undefined)? "5": "0"})
-      .style("shape-rendering", function(d) {return (d.run_id != undefined)? "auto": "crispEdges"})
-      .style("stroke-width", function(d) {return (d.run_id != undefined)? "2": "1"})
-      .style("stroke-opacity", function(d) {return d.external_trigger ? "0": "1"})
-      .attr("title", function(d){
-        s =  "Task_id: " + d.task_id + "<br>";
-        s += "Run: " + d.execution_date + "<br>";
-        if(d.run_id != undefined){
-          s += "run_id: <nobr>" + d.run_id + "</nobr><br>";
-        }
-        s += "Operator: " + d.operator + "<br>"
-        if(d.start_date != undefined){
-          s += "Started: " + d.start_date + "<br>";
-          s += "Ended: " + d.end_date + "<br>";
-          s += "Duration: " + d.duration + "<br>";
-          s += "State: " + d.state + "<br>";
-        }
-        return s;
-      })
-      .attr('x', function(d, i) {return (i*(square_size+square_spacing));})
-      .attr('y', -square_size/2)
-      .attr('width', 10)
-      .attr('height', 10)
-      .on('mouseover', function(d,i) {
-        d3.select(this).transition()
-          .style('stroke-width', 3)
-       })
-      .on('mouseout', function(d,i) {
-        d3.select(this).transition()
-          .style("stroke-width", function(d) {return (d.run_id != undefined)? "2": "1"})
-       }) ;
+  // nodeEnter.append('g')
+  //     .attr("class", "stateboxes")
+  //     .attr("transform",
+  //       function(d, i) { return "translate(" + (square_x-d.y) + ",0)"; })
+  //     .selectAll("rect").data(function(d) { return d.instances; })
+  //     .enter()
+  //     .append('rect')
+  //     .on("click", function(d){
+  //       if(d.task_id === undefined)
+  //           call_modal_dag(d);
+  //       else if(nodeobj[d.task_id].operator=='SubDagOperator')
+  //           call_modal(d.task_id, d.execution_date, true);
+  //       else
+  //           call_modal(d.task_id, d.execution_date);
+  //     })
+  //     .attr("class", function(d) {return "state " + d.state})
+  //     .attr("data-toggle", "tooltip")
+  //     .attr("rx", function(d) {return (d.run_id != undefined)? "5": "0"})
+  //     .attr("ry", function(d) {return (d.run_id != undefined)? "5": "0"})
+  //     .style("shape-rendering", function(d) {return (d.run_id != undefined)? "auto": "crispEdges"})
+  //     .style("stroke-width", function(d) {return (d.run_id != undefined)? "2": "1"})
+  //     .style("stroke-opacity", function(d) {return d.external_trigger ? "0": "1"})
+  //     .attr("title", function(d){
+  //       s =  "Task_id: " + d.task_id + "<br>";
+  //       s += "Run: " + d.execution_date + "<br>";
+  //       if(d.run_id != undefined){
+  //         s += "run_id: <nobr>" + d.run_id + "</nobr><br>";
+  //       }
+  //       s += "Operator: " + d.operator + "<br>"
+  //       if(d.start_date != undefined){
+  //         s += "Started: " + d.start_date + "<br>";
+  //         s += "Ended: " + d.end_date + "<br>";
+  //         s += "Duration: " + d.duration + "<br>";
+  //         s += "State: " + d.state + "<br>";
+  //       }
+  //       return s;
+  //     })
+  //     .attr('x', function(d, i) {return (i*(square_size+square_spacing));})
+  //     .attr('y', -square_size/2)
+  //     .attr('width', 10)
+  //     .attr('height', 10)
+  //     .on('mouseover', function(d,i) {
+  //       d3.select(this).transition()
+  //         .style('stroke-width', 3)
+  //      })
+  //     .on('mouseout', function(d,i) {
+  //       d3.select(this).transition()
+  //         .style("stroke-width", function(d) {return (d.run_id != undefined)? "2": "1"})
+  //      }) ;
 
 
   // Transition nodes to their new position.
@@ -379,4 +380,5 @@ function click(d) {
 }
 set_tooltip();
   </script>
+  <script src="{{ url_for_asset('tree.js') }}"></script>
 {% endblock %}
