@@ -32,13 +32,12 @@ function updateNodesStates(task_instances) {
       .attr("data-toggle", "tooltip")
       .attr("data-original-title", function (d) {
         // Tooltip
-        const task = tasks[task_id];
-        let tt = "Task_id: " + ti.task_id + "<br>";
+        let tt = "Task ID: " + ti.task_id + "<br>";
         tt += "Run: " + converAndFormatUTC(ti.execution_date) + "<br>";
         if (ti.run_id != undefined) {
           tt += "run_id: <nobr>" + ti.run_id + "</nobr><br>";
         }
-        tt += "Operator: " + task.task_type + "<br>";
+        tt += "Operator: " + ti.operator + "<br>";
         tt += "Duration: " + ti.duration + "<br>";
         tt += "State: " + ti.state + "<br>";
         tt += generateTooltipDateTime(ti.start_date, ti.end_date, dagTZ); // dagTZ has been defined in dag.html
@@ -73,12 +72,12 @@ function initRefreshButton() {
 
 
 function initTaskInstanceModal() {
-  d3.selectAll("g.node").on("click", function (d) {
-    const task = tasks[d];
+  d3.selectAll("g.node").on("click", function (ti) {
+    const task = tasks[ti];
     if (task.task_type == "SubDagOperator")
-      callTaskInstanceModal(d, execution_date, true);
+      callTaskInstanceModal(task.dag_id, ti, execution_date, true);
     else
-      callTaskInstanceModal(d, execution_date);
+      callTaskInstanceModal(task.dag_id, ti, execution_date);
   });
 }
 

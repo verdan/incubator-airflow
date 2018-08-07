@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import {converAndFormatUTC, generateTooltipDateTime} from './datetime-utils';
 import {callTaskInstanceModal} from './ti-modal';
 import {callDagModal} from './dag-modal';
 
@@ -35,7 +36,7 @@ const setTooltip = () => {
   });
 };
 
-const initDagModal = (nodeEnter, nodeobj) => {
+const updateTaskInstanceStates = (nodeEnter, nodeobj) => {
   nodeEnter.append('g')
     .attr("class", "stateboxes")
     .attr("transform",
@@ -51,47 +52,32 @@ const initDagModal = (nodeEnter, nodeobj) => {
       if (d.task_id === undefined)
         callDagModal(d);
       else if (nodeobj[d.task_id].operator == 'SubDagOperator')
-        callTaskInstanceModal(d.task_id, d.execution_date, true);
+        callTaskInstanceModal(d.dag_id, d.task_id, d.execution_date, true);
       else
-        callTaskInstanceModal(d.task_id, d.execution_date);
+        callTaskInstanceModal(d.dag_id, d.task_id, d.execution_date);
     })
-    .attr("class", function (d) {
-      return "state " + d.state
-    })
-    .attr("rx", function (d) {
-      return (d.run_id != undefined) ? "5" : "0"
-    })
-    .attr("ry", function (d) {
-      return (d.run_id != undefined) ? "5" : "0"
-    })
-    .style("shape-rendering", function (d) {
-      return (d.run_id != undefined) ? "auto" : "crispEdges"
-    })
-    .style("stroke-width", function (d) {
-      return (d.run_id != undefined) ? "2" : "1"
-    })
-    .style("stroke-opacity", function (d) {
-      return d.external_trigger ? "0" : "1"
-    })
+    .attr("class", d => "state " + d.state)
+    .attr("rx", d => (d.run_id != undefined) ? "5" : "0")
+    .attr("ry", d => (d.run_id != undefined) ? "5" : "0")
+    .style("shape-rendering", d => (d.run_id != undefined) ? "auto" : "crispEdges")
+    .style("stroke-width", d => (d.run_id != undefined) ? "2" : "1")
+    .style("stroke-opacity", d => d.external_trigger ? "0" : "1")
     .attr("data-toggle", "tooltip")
-    .attr("data-original-title", function (d) {
-      let s = "Task_id: " + d.task_id + "<br>";
-      s += "Run: " + d.execution_date + "<br>";
+    .attr("data-original-title", d => {
+      let tt = "Task ID: " + d.task_id + "<br>";
+      tt += "Run: " + converAndFormatUTC(d.execution_date) + "<br>";
       if (d.run_id != undefined) {
-        s += "run_id: <nobr>" + d.run_id + "</nobr><br>";
+        tt += "Run ID: <nobr>" + d.run_id + "</nobr><br>";
       }
-      s += "Operator: " + d.operator + "<br>"
+      tt += "Operator: " + d.operator + "<br>";
       if (d.start_date != undefined) {
-        s += "Started: " + d.start_date + "<br>";
-        s += "Ended: " + d.end_date + "<br>";
-        s += "Duration: " + d.duration + "<br>";
-        s += "State: " + d.state + "<br>";
+        tt += "Duration: " + d.duration + "<br>";
+        tt += "State: " + d.state + "<br>";
+        tt += generateTooltipDateTime(d.start_date, d.end_date, dagTZ); // dagTZ has been defined in dag.html
       }
-      return s;
+      return tt;
     })
-    .attr('x', function (d, i) {
-      return (i * (square_size + square_spacing));
-    })
+    .attr('x', (d, i) => i * (square_size + square_spacing))
     .attr('y', -square_size / 2)
     .attr('width', 10)
     .attr('height', 10)
@@ -107,5 +93,5 @@ const initDagModal = (nodeEnter, nodeobj) => {
     });
 };
 
-initDagModal(nodeEnter, nodeobj);
+updateTaskInstanceStates(nodeEnter, nodeobj);
 setTooltip();

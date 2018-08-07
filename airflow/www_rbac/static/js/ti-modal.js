@@ -122,27 +122,25 @@ const initModalButtons = (dagID, taskID, execDate, subDagID) => {
   });
 };
 
-export const callTaskInstanceModal = (ti, d, sd) => {
-  // DagID fetched from data attribute in dag.html file
-  let dagID = $('#dag-id').data('dag-id');
+export const callTaskInstanceModal = (dID, ti, exDate, subD) => {
   let subDagID = '';
 
   $("#btn_filter").on("click", function () {
     window.location = updateQueryStringParameter(ti);
   });
   $('#task_id').html(ti);
-  $('#execution_date').html(d);
+  $('#execution_date').html(exDate);
   $('#myModal').modal({});
   $("#myModal").css("margin-top", "0px");
-  if (sd === undefined)
+  if (subD === undefined)
     $("#div_btn_subdag").hide();
   else {
     $("#div_btn_subdag").show();
-    subDagID = encodeURIComponent(`${dagID}.${ti}`);
+    subDagID = encodeURIComponent(`${dID}.${ti}`);
   }
-  dagID = encodeURIComponent(dagID);
+  const dagID = encodeURIComponent(dID);
   const taskID = encodeURIComponent(ti);
-  const execDate = encodeURIComponent(d);
+  const execDate = encodeURIComponent(exDate);
 
   initModalButtons(dagID, taskID, execDate, subDagID)
 };
