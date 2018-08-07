@@ -24,6 +24,17 @@ var square_x = 500;
 var square_size = 10;
 var square_spacing = 2;
 
+const setTooltip = () => {
+  $("rect.state").tooltip({
+    html: true,
+    container: "body",
+  });
+  $("circle.task").tooltip({
+    html: true,
+    container: "body",
+  });
+};
+
 const initDagModal = (nodeEnter, nodeobj) => {
   nodeEnter.append('g')
     .attr("class", "stateboxes")
@@ -47,7 +58,6 @@ const initDagModal = (nodeEnter, nodeobj) => {
     .attr("class", function (d) {
       return "state " + d.state
     })
-    .attr("data-toggle", "tooltip")
     .attr("rx", function (d) {
       return (d.run_id != undefined) ? "5" : "0"
     })
@@ -63,7 +73,8 @@ const initDagModal = (nodeEnter, nodeobj) => {
     .style("stroke-opacity", function (d) {
       return d.external_trigger ? "0" : "1"
     })
-    .attr("title", function (d) {
+    .attr("data-toggle", "tooltip")
+    .attr("data-original-title", function (d) {
       let s = "Task_id: " + d.task_id + "<br>";
       s += "Run: " + d.execution_date + "<br>";
       if (d.run_id != undefined) {
@@ -96,5 +107,5 @@ const initDagModal = (nodeEnter, nodeobj) => {
     });
 };
 
-
 initDagModal(nodeEnter, nodeobj);
+setTooltip();
