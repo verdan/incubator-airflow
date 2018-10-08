@@ -19,13 +19,12 @@
 from future.utils import native
 
 import flask_login
-from flask_login import login_required, current_user, logout_user
+from flask_login import login_required, current_user, logout_user  # noqa: F401
 from flask import flash
-from wtforms import (
-    Form, PasswordField, StringField)
+from wtforms import Form, PasswordField, StringField
 from wtforms.validators import InputRequired
 
-from ldap3 import Server, Connection, Tls, LEVEL, SUBTREE, BASE
+from ldap3 import Server, Connection, Tls, LEVEL, SUBTREE
 import ssl
 
 from flask import url_for, redirect
@@ -236,14 +235,17 @@ class LdapUser(models.User):
             log.info("Password incorrect for user %s", username)
             raise AuthenticationError("Invalid username or password")
 
+    @property
     def is_active(self):
         """Required by flask_login"""
         return True
 
+    @property
     def is_authenticated(self):
         """Required by flask_login"""
         return True
 
+    @property
     def is_anonymous(self):
         """Required by flask_login"""
         return False
@@ -274,7 +276,7 @@ def load_user(userid, session=None):
 
 @provide_session
 def login(self, request, session=None):
-    if current_user.is_authenticated():
+    if current_user.is_authenticated:
         flash("You are already logged in")
         return redirect(url_for('admin.index'))
 
