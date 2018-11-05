@@ -301,17 +301,13 @@ class Airflow(AirflowBaseView):
                 if 'all_dags' in filter_dag_ids or dag.dag_id in filter_dag_ids:
                     payload[dag.safe_dag_id] = []
                     for state in State.dag_states:
-                        try:
-                            count = data[dag.dag_id][state]
-                        except Exception:
-                            count = 0
-                        d = {
+                        count = data.get(dag.dag_id, {}).get(state, 0)
+                        payload[dag.safe_dag_id].append({
                             'state': state,
                             'count': count,
                             'dag_id': dag.dag_id,
                             'color': State.color(state)
-                        }
-                        payload[dag.safe_dag_id].append(d)
+                        })
         return wwwutils.json_response(payload)
 
     @expose('/task_stats')
@@ -379,17 +375,13 @@ class Airflow(AirflowBaseView):
             if 'all_dags' in filter_dag_ids or dag.dag_id in filter_dag_ids:
                 payload[dag.safe_dag_id] = []
                 for state in State.task_states:
-                    try:
-                        count = data[dag.dag_id][state]
-                    except Exception:
-                        count = 0
-                    d = {
+                    count = data.get(dag.dag_id, {}).get(state, 0)
+                    payload[dag.safe_dag_id].append({
                         'state': state,
                         'count': count,
                         'dag_id': dag.dag_id,
                         'color': State.color(state)
-                    }
-                    payload[dag.safe_dag_id].append(d)
+                    })
         return wwwutils.json_response(payload)
 
     @expose('/code')
@@ -1352,6 +1344,10 @@ class Airflow(AirflowBaseView):
         num_runs = request.args.get('num_runs')
         num_runs = int(num_runs) if num_runs else default_dag_run
 
+        if dag is None:
+            flash('DAG "{0}" seems to be missing.'.format(dag_id), "error")
+            return redirect('/')
+
         if base_date:
             base_date = pendulum.parse(base_date)
         else:
@@ -2111,7 +2107,7 @@ class VariableModelView(AirflowModelView):
                     suc_count += 1
             flash("{} variable(s) successfully updated.".format(suc_count))
             if fail_count:
-                flash("{} variables(s) failed to be updated.".format(fail_count), 'error')
+                flash("{} variable(s) failed to be updated.".format(fail_count), 'error')
             self.update_redirect()
             return redirect(self.get_redirect())
 
@@ -2353,7 +2349,7 @@ class TaskInstanceModelView(AirflowModelView):
             self.update_redirect()
             return redirect(self.get_redirect())
 
-        except Exception as ex:
+        except Exception:
             flash('Failed to clear task instances', 'error')
 
     @provide_session

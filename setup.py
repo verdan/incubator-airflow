@@ -45,8 +45,7 @@ def verify_gpl_dependency():
     if os.getenv("READTHEDOCS") == "True":
         os.environ["SLUGIFY_USES_TEXT_UNIDECODE"] = "yes"
 
-    if (not os.getenv("AIRFLOW_GPL_UNIDECODE")
-            and not os.getenv("SLUGIFY_USES_TEXT_UNIDECODE") == "yes"):
+    if not os.getenv("AIRFLOW_GPL_UNIDECODE") and not os.getenv("SLUGIFY_USES_TEXT_UNIDECODE") == "yes":
         raise RuntimeError("By default one of Airflow's dependencies installs a GPL "
                            "dependency (unidecode). To avoid this dependency set "
                            "SLUGIFY_USES_TEXT_UNIDECODE=yes in your environment when you "
@@ -192,6 +191,7 @@ gcp_api = [
     'pandas-gbq'
 ]
 github_enterprise = ['Flask-OAuthlib>=0.9.1']
+google_auth = ['Flask-OAuthlib>=0.9.1']
 hdfs = ['snakebite>=2.7.8']
 hive = [
     'hmsclient>=0.1.0',
@@ -256,7 +256,7 @@ devel = [
     'qds-sdk>=1.9.6',
     'rednose',
     'requests_mock',
-    'flake8'
+    'flake8==3.5.0'
 ]
 
 if not PY3:
@@ -358,6 +358,7 @@ def do_setup():
             'emr': emr,
             'gcp_api': gcp_api,
             'github_enterprise': github_enterprise,
+            'google_auth': google_auth,
             'hdfs': hdfs,
             'hive': hive,
             'jdbc': jdbc,

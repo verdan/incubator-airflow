@@ -145,7 +145,7 @@ Airflow can be configured to read and write task logs in Azure Blob Storage.
 See :ref:`write-logs-azure`.
 
 Azure Data Lake
-''''''''''''''''''
+'''''''''''''''
 
 AzureDataLakeHook communicates via a REST API compatible with WebHDFS. Make sure that a
 Airflow connection of type `azure_data_lake` exists. Authorization can be done by supplying a
@@ -153,13 +153,21 @@ login (=Client ID), password (=Client Secret) and extra fields tenant (Tenant) a
  (see connection `azure_data_lake_default` for an example).
 
 - :ref:`AzureDataLakeHook`: Interface with Azure Data Lake.
+- :ref:`AzureDataLakeStorageListOperator`: Lists the files located in a specified Azure Data Lake path.
 
 .. _AzureDataLakeHook:
 
 AzureDataLakeHook
-"""""""""
+"""""""""""""""""
 
 .. autoclass:: airflow.contrib.hooks.azure_data_lake_hook.AzureDataLakeHook
+
+.. _AzureDataLakeStorageListOperator:
+
+AzureDataLakeStorageListOperator
+""""""""""""""""""""""""""""""""
+
+.. autoclass:: airflow.contrib.operators.adls_list_operator.AzureDataLakeStorageListOperator
 
 .. _AWS:
 
@@ -170,7 +178,7 @@ Airflow has extensive support for Amazon Web Services. But note that the Hooks, 
 Operators are in the contrib section.
 
 AWS EMR
-''''''''
+'''''''
 
 - :ref:`EmrAddStepsOperator` : Adds steps to an existing EMR JobFlow.
 - :ref:`EmrCreateJobFlowOperator` : Creates an EMR JobFlow, reading the config from the EMR connection.
@@ -313,6 +321,49 @@ S3ToRedshiftTransfer
 
 .. autoclass:: airflow.operators.s3_to_redshift_operator.S3ToRedshiftTransfer
 
+AWS DynamoDB
+''''''''''''
+
+- :ref:`HiveToDynamoDBTransferOperator` :  Moves data from Hive to DynamoDB.
+- :ref:`AwsDynamoDBHook` : Interact with AWS DynamoDB.
+
+.. _HiveToDynamoDBTransferOperator:
+
+HiveToDynamoDBTransferOperator
+""""""""""""""""""""""""""""""
+
+.. autoclass:: airflow.contrib.operators.hive_to_dynamodb.HiveToDynamoDBTransferOperator
+
+.. _AwsDynamoDBHook:
+
+AwsDynamoDBHook
+"""""""""""""""
+
+.. autoclass:: airflow.contrib.hooks.aws_dynamodb_hook.AwsDynamoDBHook
+
+AWS Lambda
+''''''''''
+
+- :ref:`AwsLambdaHook` : Interact with AWS Lambda.
+
+.. _AwsLambdaHook:
+
+AwsLambdaHook
+"""""""""""""
+
+.. autoclass:: airflow.contrib.hooks.aws_lambda_hook.AwsLambdaHook
+
+AWS Kinesis
+'''''''''''
+
+- :ref:`AwsFirehoseHook` : Interact with AWS Kinesis Firehose.
+
+.. _AwsFirehoseHook:
+
+AwsFirehoseHook
+"""""""""""""""
+
+.. autoclass:: airflow.contrib.hooks.aws_firehose_hook.AwsFirehoseHook
 
 .. _Databricks:
 
@@ -357,6 +408,7 @@ BigQuery Operators
 - :ref:`BigQueryCheckOperator` : Performs checks against a SQL query that will return a single row with different values.
 - :ref:`BigQueryValueCheckOperator` : Performs a simple value check using SQL code.
 - :ref:`BigQueryIntervalCheckOperator` : Checks that the values of metrics given as SQL expressions are within a certain tolerance of the ones from days_back before.
+- :ref:`BigQueryGetDataOperator` : Fetches the data from a BigQuery table and returns data in a python list
 - :ref:`BigQueryCreateEmptyTableOperator` : Creates a new, empty table in the specified BigQuery dataset optionally with schema.
 - :ref:`BigQueryCreateExternalTableOperator` : Creates a new, external table in the dataset with the data in Google Cloud Storage.
 - :ref:`BigQueryDeleteDatasetOperator` : Deletes an existing BigQuery dataset.
@@ -457,6 +509,101 @@ BigQueryHook
 .. autoclass:: airflow.contrib.hooks.bigquery_hook.BigQueryHook
     :members:
 
+Cloud SQL
+'''''''''
+
+Cloud SQL Operators
+"""""""""""""""""""
+
+- :ref:`CloudSqlInstanceDatabaseDeleteOperator` : deletes a database from a Cloud SQL
+instance.
+- :ref:`CloudSqlInstanceDatabaseCreateOperator` : creates a new database inside a Cloud
+SQL instance.
+- :ref:`CloudSqlInstanceDatabasePatchOperator` : updates a database inside a Cloud
+SQL instance.
+- :ref:`CloudSqlInstanceDeleteOperator` : delete a Cloud SQL instance.
+- :ref:`CloudSqlInstanceCreateOperator` : create a new Cloud SQL instance.
+- :ref:`CloudSqlInstancePatchOperator` : patch a Cloud SQL instance.
+
+.. CloudSqlInstanceDatabaseDeleteOperator:
+
+CloudSqlInstanceDatabaseDeleteOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabaseDeleteOperator
+
+.. CloudSqlInstanceDatabaseCreateOperator:
+
+CloudSqlInstanceDatabaseCreateOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabaseCreateOperator
+
+.. CloudSqlInstanceDatabasePatchOperator:
+
+CloudSqlInstanceDatabasePatchOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabasePatchOperator
+
+.. CloudSqlInstanceDeleteOperator:
+
+CloudSqlInstanceDeleteOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDeleteOperator
+
+.. CloudSqlInstanceCreateOperator:
+
+CloudSqlInstanceCreateOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceCreateOperator
+
+.. CloudSqlInstancePatchOperator:
+
+CloudSqlInstancePatchOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: airflow.contrib.operators.gcp_sql_operator.CloudSqlInstancePatchOperator
+
+Cloud SQL Hook
+""""""""""""""
+
+.. autoclass:: airflow.contrib.hooks.gcp_sql_hook.CloudSqlHook
+    :members:
+
+Compute Engine
+''''''''''''''
+
+Compute Engine Operators
+""""""""""""""""""""""""
+
+- :ref:`GceInstanceStartOperator` : start an existing Google Compute Engine instance.
+- :ref:`GceInstanceStopOperator` : stop an existing Google Compute Engine instance.
+- :ref:`GceSetMachineTypeOperator` : change the machine type for a stopped instance.
+
+.. _GceInstanceStartOperator:
+
+GceInstanceStartOperator
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: airflow.contrib.operators.gcp_compute_operator.GceInstanceStartOperator
+
+.. _GceInstanceStopOperator:
+
+GceInstanceStopOperator
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: airflow.contrib.operators.gcp_compute_operator.GceInstanceStopOperator
+
+.. _GceSetMachineTypeOperator:
+
+GceSetMachineTypeOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: airflow.contrib.operators.gcp_compute_operator.GceSetMachineTypeOperator
+
 
 Cloud Functions
 '''''''''''''''
@@ -464,8 +611,8 @@ Cloud Functions
 Cloud Functions Operators
 """""""""""""""""""""""""
 
-- :ref:`GcfFunctionDeployOperator` : deploy Google Cloud Function to the cloud.
-- :ref:`GcfFunctionDeleteOperator` : delete Google Cloud Function in the cloud.
+- :ref:`GcfFunctionDeployOperator` : deploy Google Cloud Function to Google Cloud Platform
+- :ref:`GcfFunctionDeleteOperator` : delete Google Cloud Function in Google Cloud Platform
 
 .. autoclass:: airflow.contrib.operators.gcp_operator.GCP
 

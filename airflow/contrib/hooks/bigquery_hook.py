@@ -229,7 +229,8 @@ class BigQueryBaseCursor(LoggingMixin):
         :param table_id: The Name of the table to be created.
         :type table_id: str
         :param schema_fields: If set, the schema field list as defined here:
-        https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.load.schema
+            https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.load.schema
+        :type schema_fields: list
         :param labels: a dictionary containing labels for the table, passed to BigQuery
         :type labels: dict
 
@@ -238,7 +239,6 @@ class BigQueryBaseCursor(LoggingMixin):
             schema_fields=[{"name": "emp_name", "type": "STRING", "mode": "REQUIRED"},
                            {"name": "salary", "type": "INTEGER", "mode": "NULLABLE"}]
 
-        :type schema_fields: list
         :param time_partitioning: configure optional time partitioning fields i.e.
             partition by field, type and expiration as per API specifications.
 
@@ -480,8 +480,7 @@ class BigQueryBaseCursor(LoggingMixin):
             )
 
     def run_query(self,
-                  bql=None,
-                  sql=None,
+                  sql,
                   destination_dataset_table=None,
                   write_disposition='WRITE_EMPTY',
                   allow_large_results=False,
@@ -506,9 +505,6 @@ class BigQueryBaseCursor(LoggingMixin):
 
         For more details about these parameters.
 
-        :param bql: (Deprecated. Use `sql` parameter instead) The BigQuery SQL
-            to execute.
-        :type bql: str
         :param sql: The BigQuery SQL to execute.
         :type sql: str
         :param destination_dataset_table: The dotted <dataset>.<table>
@@ -526,6 +522,7 @@ class BigQueryBaseCursor(LoggingMixin):
         :type flatten_results: bool
         :param udf_config: The User Defined Function configuration for the query.
             See https://cloud.google.com/bigquery/user-defined-functions for details.
+        :type udf_config: list
         :param use_legacy_sql: Whether to use legacy SQL (true) or standard SQL (false).
             If `None`, defaults to `self.use_legacy_sql`.
         :type use_legacy_sql: bool
@@ -536,7 +533,6 @@ class BigQueryBaseCursor(LoggingMixin):
             if you need to provide some params that are not supported by the
             BigQueryHook like args.
         :type api_resource_configs: dict
-        :type udf_config: list
         :param maximum_billing_tier: Positive integer that serves as a
             multiplier of the basic price.
         :type maximum_billing_tier: int
@@ -582,19 +578,6 @@ class BigQueryBaseCursor(LoggingMixin):
         else:
             _validate_value("api_resource_configs['query']",
                             configuration['query'], dict)
-
-        sql = bql if sql is None else sql
-
-        # TODO remove `bql` in Airflow 2.0 - Jira: [AIRFLOW-2513]
-        if bql:
-            import warnings
-            warnings.warn('Deprecated parameter `bql` used in '
-                          '`BigQueryBaseCursor.run_query` '
-                          'Use `sql` parameter instead to pass the sql to be '
-                          'executed. `bql` parameter is deprecated and '
-                          'will be removed in a future version of '
-                          'Airflow.',
-                          category=DeprecationWarning)
 
         if sql is None and not configuration['query'].get('query', None):
             raise TypeError('`BigQueryBaseCursor.run_query` '
@@ -849,8 +832,8 @@ class BigQueryBaseCursor(LoggingMixin):
 
     def run_load(self,
                  destination_project_dataset_table,
-                 schema_fields,
                  source_uris,
+                 schema_fields=None,
                  source_format='CSV',
                  create_disposition='CREATE_IF_NEEDED',
                  skip_leading_rows=0,
@@ -864,7 +847,8 @@ class BigQueryBaseCursor(LoggingMixin):
                  schema_update_options=(),
                  src_fmt_configs=None,
                  time_partitioning=None,
-                 cluster_fields=None):
+                 cluster_fields=None,
+                 autodetect=False):
         """
         Executes a BigQuery load command to load data from Google Cloud Storage
         to BigQuery. See here:
@@ -882,7 +866,11 @@ class BigQueryBaseCursor(LoggingMixin):
         :type destination_project_dataset_table: str
         :param schema_fields: The schema field list as defined here:
             https://cloud.google.com/bigquery/docs/reference/v2/jobs#configuration.load
+            Required if autodetect=False; optional if autodetect=True.
         :type schema_fields: list
+        :param autodetect: Attempt to autodetect the schema for CSV and JSON
+            source files.
+        :type autodetect: bool
         :param source_uris: The source Google Cloud
             Storage URI (e.g. gs://some-bucket/some-file.txt). A single wild
             per-object name can be used.
@@ -937,6 +925,11 @@ class BigQueryBaseCursor(LoggingMixin):
         # if it's not, we raise a ValueError
         # Refer to this link for more details:
         #   https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.query.tableDefinitions.(key).sourceFormat
+
+        if schema_fields is None and not autodetect:
+            raise ValueError(
+                'You must either pass a schema or autodetect=True.')
+
         if src_fmt_configs is None:
             src_fmt_configs = {}
 
@@ -971,6 +964,7 @@ class BigQueryBaseCursor(LoggingMixin):
 
         configuration = {
             'load': {
+                'autodetect': autodetect,
                 'createDisposition': create_disposition,
                 'destinationTable': {
                     'projectId': destination_project,
@@ -1734,7 +1728,7 @@ def _split_tablename(table_input, default_project_id, var_name=None):
 
     if '.' not in table_input:
         raise ValueError(
-            'Expected deletion_dataset_table name in the format of '
+            'Expected target table name in the format of '
             '<dataset>.<table>. Got: {}'.format(table_input))
 
     if not default_project_id:

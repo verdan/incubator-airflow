@@ -19,7 +19,6 @@
 # under the License.
 
 from __future__ import print_function
-from backports.configparser import NoSectionError
 import logging
 
 import os
@@ -488,24 +487,6 @@ def _run(args, dag, ti):
 
 @cli_utils.action_logging
 def run(args, dag=None):
-    # Optional sections won't log an error if they're missing in airflow.cfg.
-    OPTIONAL_AIRFLOW_CFG_SECTIONS = [
-        'atlas',
-        'celery',
-        'celery_broker_transport_options',
-        'dask',
-        'elasticsearch',
-        'github_enterprise',
-        'hive',
-        'kerberos',
-        'kubernetes',
-        'kubernetes_node_selectors',
-        'kubernetes_secrets',
-        'ldap',
-        'lineage',
-        'mesos',
-    ]
-
     if dag:
         args.dag_id = dag.dag_id
 
@@ -519,25 +500,7 @@ def run(args, dag=None):
         if os.path.exists(args.cfg_path):
             os.remove(args.cfg_path)
 
-        # Do not log these properties since some may contain passwords.
-        # This may also set default values for database properties like
-        # core.sql_alchemy_pool_size
-        # core.sql_alchemy_pool_recycle
-        for section, config in conf_dict.items():
-            for option, value in config.items():
-                try:
-                    conf.set(section, option, value)
-                except NoSectionError:
-                    no_section_msg = (
-                        'Section {section} Option {option} '
-                        'does not exist in the config!'
-                    ).format(section=section, option=option)
-
-                    if section in OPTIONAL_AIRFLOW_CFG_SECTIONS:
-                        log.debug(no_section_msg)
-                    else:
-                        log.error(no_section_msg)
-
+        conf.conf.read_dict(conf_dict, source=args.cfg_path)
         settings.configure_vars()
 
     # IMPORTANT, have to use the NullPool, otherwise, each "run" command may leave
@@ -678,6 +641,11 @@ def list_tasks(args, dag=None):
 
 @cli_utils.action_logging
 def test(args, dag=None):
+    # We want log outout from operators etc to show up here. Normally
+    # airflow.task would redirect to a file, but here we want it to propagate
+    # up to the normal airflow handler.
+    logging.getLogger('airflow.task').propagate = True
+
     dag = dag or get_dag(args)
 
     task = dag.get_task(task_id=args.task_id)
@@ -1070,13 +1038,18 @@ def worker(args):
     from airflow.executors.celery_executor import app as celery_app
     from celery.bin import worker
 
+    autoscale = args.autoscale
+    if autoscale is None and conf.has_option("celery", "worker_autoscale"):
+        autoscale = conf.get("celery", "worker_autoscale")
     worker = worker.worker(app=celery_app)
     options = {
         'optimization': 'fair',
         'O': 'fair',
         'queues': args.queues,
         'concurrency': args.concurrency,
+        'autoscale': autoscale,
         'hostname': args.celery_hostname,
+        'loglevel': conf.get('core', 'LOGGING_LEVEL'),
     }
 
     if args.daemon:
@@ -1947,6 +1920,9 @@ class CLIFactory(object):
             ('-d', '--delete'),
             help='Delete a user',
             action='store_true'),
+        'autoscale': Arg(
+            ('-a', '--autoscale'),
+            help="Minimum and Maximum number of worker to autoscale"),
 
     }
     subparsers = (
@@ -2089,7 +2065,7 @@ class CLIFactory(object):
             'func': worker,
             'help': "Start a Celery worker node",
             'args': ('do_pickle', 'queues', 'concurrency', 'celery_hostname',
-                     'pid', 'daemon', 'stdout', 'stderr', 'log_file'),
+                     'pid', 'daemon', 'stdout', 'stderr', 'log_file', 'autoscale'),
         }, {
             'func': flower,
             'help': "Start a Celery Flower",

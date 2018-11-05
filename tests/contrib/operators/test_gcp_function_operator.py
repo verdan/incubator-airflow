@@ -344,7 +344,7 @@ class GcfFunctionDeployTest(unittest.TestCase):
          "Parameter 'sourceUploadUrl' is empty in the body and argument "
          "'zip_path' is missing or empty."),
         ({'sourceArchiveUrl': 'gs://adasda', 'sourceRepository': ''},
-         "The field 'source_code.sourceRepository' should be dictionary type"),
+         "The field 'source_code.sourceRepository' should be of dictionary type"),
         ({'sourceUploadUrl': '', 'sourceRepository': ''},
          "Parameter 'sourceUploadUrl' is empty in the body and argument 'zip_path' "
          "is missing or empty."),
@@ -360,7 +360,7 @@ class GcfFunctionDeployTest(unittest.TestCase):
         ({'sourceUploadUrl': ''}, "Parameter 'sourceUploadUrl' is empty in the body "
                                   "and argument 'zip_path' is missing or empty."),
         ({'sourceRepository': ''}, "The field 'source_code.sourceRepository' "
-                                   "should be dictionary type"),
+                                   "should be of dictionary type"),
         ({'sourceRepository': {}}, "The required body field "
                                    "'source_code.sourceRepository.url' is missing"),
         ({'sourceRepository': {'url': ''}},
@@ -452,7 +452,7 @@ class GcfFunctionDeployTest(unittest.TestCase):
                            'service': 'service_name',
                            'failurePolicy': {'retry': ''}}},
          "The field 'trigger.eventTrigger.failurePolicy.retry' "
-         "should be dictionary type")
+         "should be of dictionary type")
     ]
     )
     @mock.patch('airflow.contrib.operators.gcp_function_operator.GcfHook')
@@ -517,6 +517,23 @@ class GcfFunctionDeployTest(unittest.TestCase):
             'projects/test_project_id/locations/test_region',
             body
         )
+        mock_hook.reset_mock()
+
+    @mock.patch('airflow.contrib.operators.gcp_function_operator.GcfHook')
+    def test_extra_parameter(self, mock_hook):
+        mock_hook.return_value.list_functions.return_value = []
+        mock_hook.return_value.create_new_function.return_value = True
+        body = deepcopy(VALID_BODY)
+        body['extra_parameter'] = 'extra'
+        op = GcfFunctionDeployOperator(
+            project_id="test_project_id",
+            location="test_region",
+            body=body,
+            task_id="id"
+        )
+        op.execute(None)
+        mock_hook.assert_called_once_with(api_version='v1',
+                                          gcp_conn_id='google_cloud_default')
         mock_hook.reset_mock()
 
 

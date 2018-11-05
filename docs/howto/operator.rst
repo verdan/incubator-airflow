@@ -102,6 +102,62 @@ to execute a BigQuery load job.
     :start-after: [START howto_operator_gcs_to_bq]
     :end-before: [END howto_operator_gcs_to_bq]
 
+GceInstanceStartOperator
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Allows to start an existing Google Compute Engine instance.
+
+In this example parameter values are extracted from Airflow variables.
+Moreover, the ``default_args`` dict is used to pass common arguments to all operators in a single DAG.
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_compute.py
+    :language: python
+    :start-after: [START howto_operator_gce_args]
+    :end-before: [END howto_operator_gce_args]
+
+
+Define the :class:`~airflow.contrib.operators.gcp_compute_operator
+.GceInstanceStartOperator` by passing the required arguments to the constructor.
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_compute.py
+    :language: python
+    :dedent: 4
+    :start-after: [START howto_operator_gce_start]
+    :end-before: [END howto_operator_gce_start]
+
+GceInstanceStopOperator
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Allows to stop an existing Google Compute Engine instance.
+
+For parameter definition take a look at :class:`~airflow.contrib.operators.gcp_compute_operator.GceInstanceStartOperator` above.
+
+Define the :class:`~airflow.contrib.operators.gcp_compute_operator
+.GceInstanceStopOperator` by passing the required arguments to the constructor.
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_compute.py
+    :language: python
+    :dedent: 4
+    :start-after: [START howto_operator_gce_stop]
+    :end-before: [END howto_operator_gce_stop]
+
+GceSetMachineTypeOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Allows to change the machine type for a stopped instance to the specified machine type.
+
+For parameter definition take a look at :class:`~airflow.contrib.operators.gcp_compute_operator.GceInstanceStartOperator` above.
+
+Define the :class:`~airflow.contrib.operators.gcp_compute_operator
+.GceSetMachineTypeOperator` by passing the required arguments to the constructor.
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_compute.py
+    :language: python
+    :dedent: 4
+    :start-after: [START howto_operator_gce_set_machine_type]
+    :end-before: [END howto_operator_gce_set_machine_type]
+
+
 GcfFunctionDeleteOperator
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -123,15 +179,18 @@ to delete a function from Google Cloud Functions.
 
 Troubleshooting
 """""""""""""""
+If you want to run or deploy an operator using a service account and get “forbidden 403”
+errors, it means that your service account does not have the correct
+Cloud IAM permissions.
 
-In case you want to run deploy operator using a service account and get "forbidden 403"
-errors, it means that your service account has not enough permissions set via IAM.
+1. Assign your Service Account the Cloud Functions Developer role.
+2. Grant the user the Cloud IAM Service Account User role on the Cloud Functions runtime
+   service account.
 
-* First you need to Assign your Service Account "Cloud Functions Developer" role
-* Make sure you grant the user the IAM Service Account User role on the Cloud Functions
-Runtime service account. Typical way of doing it with gcloud is shown below - just
-replace PROJECT_ID with ID of your project and SERVICE_ACCOUNT_EMAIL with the email id
-of your service account.
+The typical way of assigning Cloud IAM permissions with `gcloud` is
+shown below. Just replace PROJECT_ID with ID of your Google Cloud Platform project
+and SERVICE_ACCOUNT_EMAIL with the email ID of your service account.
+
 
 .. code-block:: bash
 
@@ -149,40 +208,40 @@ GcfFunctionDeployOperator
 Use the :class:`~airflow.contrib.operators.gcp_function_operator.GcfFunctionDeployOperator`
 to deploy a function from Google Cloud Functions.
 
-The examples below use Airflow variables defined in order to show various variants and
-combinations of default_args you can use. The variables are defined as follows:
+The following examples of Airflow variables show various variants and combinations
+of default_args that you can use. The variables are defined as follows:
 
 .. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_function_deploy_delete.py
     :language: python
     :start-after: [START howto_operator_gcf_deploy_variables]
     :end-before: [END howto_operator_gcf_deploy_variables]
 
-With those variables one can define body of the request:
+With those variables you can define the body of the request:
 
 .. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_function_deploy_delete.py
     :language: python
     :start-after: [START howto_operator_gcf_deploy_body]
     :end-before: [END howto_operator_gcf_deploy_body]
 
-The default_args dictionary when you create DAG can be used to pass body and other
-arguments:
+When you create a DAG, the default_args dictionary can be used to pass the body and
+other arguments:
 
 .. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_function_deploy_delete.py
     :language: python
     :start-after: [START howto_operator_gcf_deploy_args]
     :end-before: [END howto_operator_gcf_deploy_args]
 
-Note that the neither the body nor default args are complete in the above examples.
-Depending on the variables set there might be different variants on how to pass
-source code related fields. Currently you can pass either
-`sourceArchiveUrl`, `sourceRepository` or `sourceUploadUrl` as described in
+Note that the neither the body nor the default args are complete in the above examples.
+Depending on the set variables, there might be different variants on how to pass source
+code related fields. Currently, you can pass either sourceArchiveUrl, sourceRepository
+or sourceUploadUrl as described in the
 `CloudFunction API specification <https://cloud.google.com/functions/docs/reference/rest/v1/projects.locations.functions#CloudFunction>`_.
-Additionally default_args might contain `zip_path` parameter to run extra step
-of uploading the source code before deploying it. In the last case you also need to
+Additionally, default_args might contain zip_path parameter to run the extra step of
+uploading the source code before deploying it. In the last case, you also need to
 provide an empty `sourceUploadUrl` parameter in the body.
 
-Example logic of setting the source code related fields based on variables defined above
-is shown here:
+Based on the variables defined above, example logic of setting the source code
+related fields is shown here:
 
 .. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_function_deploy_delete.py
     :language: python
@@ -199,14 +258,17 @@ The code to create the operator:
 Troubleshooting
 """""""""""""""
 
-In case you want to run deploy operator using a service account and get "forbidden 403"
-errors, it means that your service account has not enough permissions set via IAM.
+If you want to run or deploy an operator using a service account and get “forbidden 403”
+errors, it means that your service account does not have the correct
+Cloud IAM permissions.
 
-* First you need to Assign your Service Account "Cloud Functions Developer" role
-* Make sure you grant the user the IAM Service Account User role on the Cloud Functions
-Runtime service account. Typical way of doing it with gcloud is shown below - just
-replace PROJECT_ID with ID of your project and SERVICE_ACCOUNT_EMAIL with the email id
-of your service account.
+1. Assign your Service Account the Cloud Functions Developer role.
+2. Grant the user the Cloud IAM Service Account User role on the Cloud Functions runtime
+   service account.
+
+The typical way of assigning Cloud IAM permissions with `gcloud` is
+shown below. Just replace PROJECT_ID with ID of your Google Cloud Platform project
+and SERVICE_ACCOUNT_EMAIL with the email ID of your service account.
 
 .. code-block:: bash
 
@@ -218,6 +280,300 @@ of your service account.
 
 See `Adding the IAM service agent user role to the runtime service <https://cloud.google.com/functions/docs/reference/iam/roles#adding_the_iam_service_agent_user_role_to_the_runtime_service_account>`_  for details
 
-Also make sure that your service account has access to the source code of function
-in case it should be downloaded. It might mean that you add Source Repository Viewer
-role to the service account in case the source code is in Google Source Repository.
+If the source code for your function is in Google Source Repository, make sure that
+your service account has the Source Repository Viewer role so that the source code
+can be downloaded if necessary.
+
+CloudSqlInstanceDatabaseCreateOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Creates a new database inside a Cloud SQL instance.
+
+For parameter definition take a look at
+:class:`~airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabaseCreateOperator`.
+
+Arguments
+"""""""""
+
+Some arguments in the example DAG are taken from environment variables:
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :start-after: [START howto_operator_cloudsql_arguments]
+    :end-before: [END howto_operator_cloudsql_arguments]
+
+Using the operator
+""""""""""""""""""
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :dedent: 4
+    :start-after: [START howto_operator_cloudsql_db_create]
+    :end-before: [END howto_operator_cloudsql_db_create]
+
+Example request body:
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :start-after: [START howto_operator_cloudsql_db_create_body]
+    :end-before: [END howto_operator_cloudsql_db_create_body]
+
+Templating
+""""""""""
+
+.. literalinclude:: ../../airflow/contrib/operators/gcp_sql_operator.py
+  :language: python
+  :dedent: 4
+  :start-after: [START gcp_sql_db_create_template_fields]
+  :end-before: [END gcp_sql_db_create_template_fields]
+
+More information
+""""""""""""""""
+
+See `Google Cloud SQL API documentation for database insert
+<https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/databases/insert>`_.
+
+CloudSqlInstanceDatabaseDeleteOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deletes a database from a Cloud SQL instance.
+
+For parameter definition take a look at
+:class:`~airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabaseDeleteOperator`.
+
+Arguments
+"""""""""
+
+Some arguments in the example DAG are taken from environment variables:
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :start-after: [START howto_operator_cloudsql_arguments]
+    :end-before: [END howto_operator_cloudsql_arguments]
+
+Using the operator
+""""""""""""""""""
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :dedent: 4
+    :start-after: [START howto_operator_cloudsql_db_delete]
+    :end-before: [END howto_operator_cloudsql_db_delete]
+
+Templating
+""""""""""
+
+.. literalinclude:: ../../airflow/contrib/operators/gcp_sql_operator.py
+  :language: python
+  :dedent: 4
+  :start-after: [START gcp_sql_db_delete_template_fields]
+  :end-before: [END gcp_sql_db_delete_template_fields]
+
+More information
+""""""""""""""""
+
+See `Google Cloud SQL API documentation for database delete
+<https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/databases/delete>`_.
+
+CloudSqlInstanceDatabasePatchOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Updates a resource containing information about a database inside a Cloud SQL instance
+using patch semantics.
+See: https://cloud.google.com/sql/docs/mysql/admin-api/how-tos/performance#patch
+
+For parameter definition take a look at
+:class:`~airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDatabasePatchOperator`.
+
+Arguments
+"""""""""
+
+Some arguments in the example DAG are taken from environment variables:
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :start-after: [START howto_operator_cloudsql_arguments]
+    :end-before: [END howto_operator_cloudsql_arguments]
+
+Using the operator
+""""""""""""""""""
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :dedent: 4
+    :start-after: [START howto_operator_cloudsql_db_patch]
+    :end-before: [END howto_operator_cloudsql_db_patch]
+
+Example request body:
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :start-after: [START howto_operator_cloudsql_db_patch_body]
+    :end-before: [END howto_operator_cloudsql_db_patch_body]
+
+Templating
+""""""""""
+
+.. literalinclude:: ../../airflow/contrib/operators/gcp_sql_operator.py
+  :language: python
+  :dedent: 4
+  :start-after: [START gcp_sql_db_patch_template_fields]
+  :end-before: [END gcp_sql_db_patch_template_fields]
+
+More information
+""""""""""""""""
+
+See `Google Cloud SQL API documentation for database patch
+<https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/databases/patch>`_.
+
+CloudSqlInstanceDeleteOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Deletes a Cloud SQL instance in Google Cloud Platform.
+
+For parameter definition take a look at
+:class:`~airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceDeleteOperator`.
+
+Arguments
+"""""""""
+
+Some arguments in the example DAG are taken from environment variables:
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :start-after: [START howto_operator_cloudsql_arguments]
+    :end-before: [END howto_operator_cloudsql_arguments]
+
+Using the operator
+""""""""""""""""""
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :dedent: 4
+    :start-after: [START howto_operator_cloudsql_delete]
+    :end-before: [END howto_operator_cloudsql_delete]
+
+Templating
+""""""""""
+
+.. literalinclude:: ../../airflow/contrib/operators/gcp_sql_operator.py
+  :language: python
+  :dedent: 4
+  :start-after: [START gcp_sql_delete_template_fields]
+  :end-before: [END gcp_sql_delete_template_fields]
+
+More information
+""""""""""""""""
+
+See `Google Cloud SQL API documentation for delete
+<https://cloud.google.com/sql/docs/mysql/admin-api/v1beta4/instances/delete>`_.
+
+.. _CloudSqlInstanceCreateOperator:
+
+CloudSqlInstanceCreateOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Creates a new Cloud SQL instance in Google Cloud Platform.
+
+For parameter definition take a look at
+:class:`~airflow.contrib.operators.gcp_sql_operator.CloudSqlInstanceCreateOperator`.
+
+If an instance with the same name exists, no action will be taken and the operator
+will succeed.
+
+Arguments
+"""""""""
+
+Some arguments in the example DAG are taken from environment variables:
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :start-after: [START howto_operator_cloudsql_arguments]
+    :end-before: [END howto_operator_cloudsql_arguments]
+
+Example body defining the instance:
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :start-after: [START howto_operator_cloudsql_create_body]
+    :end-before: [END howto_operator_cloudsql_create_body]
+
+Using the operator
+""""""""""""""""""
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :dedent: 4
+    :start-after: [START howto_operator_cloudsql_create]
+    :end-before: [END howto_operator_cloudsql_create]
+
+Templating
+""""""""""
+
+.. literalinclude:: ../../airflow/contrib/operators/gcp_sql_operator.py
+  :language: python
+  :dedent: 4
+  :start-after: [START gcp_sql_create_template_fields]
+  :end-before: [END gcp_sql_create_template_fields]
+
+More information
+""""""""""""""""
+
+See `Google Cloud SQL API documentation for insert <https://cloud.google
+.com/sql/docs/mysql/admin-api/v1beta4/instances/insert>`_.
+
+
+.. _CloudSqlInstancePatchOperator:
+
+CloudSqlInstancePatchOperator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Updates settings of a Cloud SQL instance in Google Cloud Platform (partial update).
+
+For parameter definition take a look at
+:class:`~airflow.contrib.operators.gcp_sql_operator.CloudSqlInstancePatchOperator`.
+
+This is a partial update, so only values for the settings specified in the body
+will be set / updated. The rest of the existing instance's configuration will remain
+unchanged.
+
+Arguments
+"""""""""
+
+Some arguments in the example DAG are taken from environment variables:
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :start-after: [START howto_operator_cloudsql_arguments]
+    :end-before: [END howto_operator_cloudsql_arguments]
+
+Example body defining the instance:
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :start-after: [START howto_operator_cloudsql_patch_body]
+    :end-before: [END howto_operator_cloudsql_patch_body]
+
+Using the operator
+""""""""""""""""""
+
+.. literalinclude:: ../../airflow/contrib/example_dags/example_gcp_sql.py
+    :language: python
+    :dedent: 4
+    :start-after: [START howto_operator_cloudsql_patch]
+    :end-before: [END howto_operator_cloudsql_patch]
+
+Templating
+""""""""""
+
+.. literalinclude:: ../../airflow/contrib/operators/gcp_sql_operator.py
+  :language: python
+  :dedent: 4
+  :start-after: [START gcp_sql_patch_template_fields]
+  :end-before: [END gcp_sql_patch_template_fields]
+
+More information
+""""""""""""""""
+
+See `Google Cloud SQL API documentation for patch <https://cloud.google
+.com/sql/docs/mysql/admin-api/v1beta4/instances/patch>`_.
