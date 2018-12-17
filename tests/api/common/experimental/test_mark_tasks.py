@@ -500,14 +500,18 @@ class TestMarkDAGRun(unittest.TestCase):
 
         # This will throw AssertionError since dag.latest_execution_date
         # need to be 0 does not exist.
+        print("First")
         self.assertRaises(AssertionError, set_dag_run_state_to_success, self.dag1,
                           self.execution_dates[0])
 
+        print("FirstComplete")
+        print("Second")
         # altered = set_dag_run_state_to_success(self.dag1, self.execution_dates[0])
         # DagRun does not exist
         # This will throw AssertionError since dag.latest_execution_date does not exist
         self.assertRaises(AssertionError, set_dag_run_state_to_success,
                           self.dag1, timezone.make_naive(self.execution_dates[0]))
+        print("SecondComplete")
 
     def tearDown(self):
         self.dag1.clear()
