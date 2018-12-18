@@ -84,9 +84,9 @@ def set_state(task, execution_date, upstream=False, downstream=False,
     print("ExecutionDate: {}".format(dag.latest_execution_date))
 
     latest_execution_date = dag.latest_execution_date
-    print("ExecutionDate Is None: {}".format(latest_execution_date is not None))
+    print("ExecutionDate Is NOT None: {}".format(latest_execution_date is not None))
     assert latest_execution_date is not None
-    print("ExecutionDate Is None: {}".format(latest_execution_date is not None))
+    print("ExecutionDate Is NOT None: {}".format(latest_execution_date is not None))
 
     # determine date range of dag runs and tasks to consider
     end_date = latest_execution_date if future else execution_date
@@ -242,6 +242,7 @@ def set_dag_run_state_to_success(dag, execution_date, commit=False,
 
     # Mark all task instances of the dag run to success.
     for task in dag.tasks:
+        print("TaskID: {}".format(task.task_id))
         task.dag = dag
         new_state = set_state(task=task, execution_date=execution_date,
                               state=State.SUCCESS, commit=commit)
