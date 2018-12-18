@@ -25,7 +25,7 @@ from flask_appbuilder.security.sqla.manager import SecurityManager
 from sqlalchemy import or_
 
 from airflow import models, settings
-from airflow.www_rbac.app import appbuilder
+from airflow.www.app import appbuilder
 
 ###########################################################################
 #                               VIEW MENUS

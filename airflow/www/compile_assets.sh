@@ -16,8 +16,8 @@
 #
 
 # first bump up package.json manually, commit and tag
-rm airflow/www_rbac/static/dist/*
-cd airflow/www_rbac/
+rm airflow/www/static/dist/*
+cd airflow/www/
 npm install
 npm run build
 cd ../..
