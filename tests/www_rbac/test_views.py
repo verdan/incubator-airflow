@@ -29,30 +29,38 @@ import tempfile
 import unittest
 import urllib
 
+from datetime import timedelta
 from flask._compat import PY2
+from parameterized import parameterized
 from urllib.parse import quote_plus
 from werkzeug.test import Client
 
 from airflow import configuration as conf
 from airflow import models, settings
 from airflow.config_templates.airflow_local_settings import DEFAULT_LOGGING_CONFIG
+from airflow.jobs import BaseJob
 from airflow.models import DAG, DagRun, TaskInstance
+from airflow.models.connection import Connection
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.settings import Session
 from airflow.utils import dates, timezone
+from airflow.utils.db import create_session
 from airflow.utils.state import State
 from airflow.utils.timezone import datetime
 from airflow.www_rbac import app as application
 
 
 class TestBase(unittest.TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         conf.load_test_config()
-        self.app, self.appbuilder = application.create_app(session=Session, testing=True)
-        self.app.config['WTF_CSRF_ENABLED'] = False
-        self.client = self.app.test_client()
+        cls.app, cls.appbuilder = application.create_app(session=Session, testing=True)
+        cls.app.config['WTF_CSRF_ENABLED'] = False
         settings.configure_orm()
-        self.session = Session
+        cls.session = Session
+
+    def setUp(self):
+        self.client = self.app.test_client()
         self.login()
 
     def login(self):
@@ -117,7 +125,7 @@ class TestConnectionModelView(TestBase):
         }
 
     def tearDown(self):
-        self.clear_table(models.Connection)
+        self.clear_table(Connection)
         super(TestConnectionModelView, self).tearDown()
 
     def test_create_connection(self):
@@ -244,6 +252,13 @@ class TestPoolModelView(TestBase):
                                 follow_redirects=True)
         self.check_content_in_response('This field is required.', resp)
 
+    def test_odd_name(self):
+        self.pool['pool'] = 'test-pool<script></script>'
+        self.session.add(models.Pool(**self.pool))
+        self.session.commit()
+        resp = self.client.get('/pool/list/')
+        self.check_content_in_response('test-pool&lt;script&gt;', resp)
+
 
 class TestMountPoint(unittest.TestCase):
     def setUp(self):
@@ -318,8 +333,66 @@ class TestAirflowBaseViews(TestBase):
         self.check_content_in_response('DAGs', resp)
 
     def test_health(self):
-        resp = self.client.get('health', follow_redirects=True)
-        self.check_content_in_response('The server is healthy!', resp)
+
+        # case-1: healthy scheduler status
+        last_scheduler_heartbeat_for_testing_1 = timezone.utcnow()
+        self.session.add(BaseJob(job_type='SchedulerJob',
+                                 state='running',
+                                 latest_heartbeat=last_scheduler_heartbeat_for_testing_1))
+        self.session.commit()
+
+        resp_json = json.loads(self.client.get('health', follow_redirects=True).data.decode('utf-8'))
+
+        self.assertEqual('healthy', resp_json['metadatabase']['status'])
+        self.assertEqual('healthy', resp_json['scheduler']['status'])
+        self.assertEqual(str(last_scheduler_heartbeat_for_testing_1),
+                         resp_json['scheduler']['latest_scheduler_heartbeat'])
+
+        self.session.query(BaseJob).\
+            filter(BaseJob.job_type == 'SchedulerJob',
+                   BaseJob.state == 'running',
+                   BaseJob.latest_heartbeat == last_scheduler_heartbeat_for_testing_1).\
+            delete()
+        self.session.commit()
+
+        # case-2: unhealthy scheduler status - scenario 1 (SchedulerJob is running too slowly)
+        last_scheduler_heartbeat_for_testing_2 = timezone.utcnow() - timedelta(minutes=1)
+        (self.session
+             .query(BaseJob)
+             .filter(BaseJob.job_type == 'SchedulerJob')
+             .update({'latest_heartbeat': last_scheduler_heartbeat_for_testing_2 - timedelta(seconds=1)}))
+        self.session.add(BaseJob(job_type='SchedulerJob',
+                                 state='running',
+                                 latest_heartbeat=last_scheduler_heartbeat_for_testing_2))
+        self.session.commit()
+
+        resp_json = json.loads(self.client.get('health', follow_redirects=True).data.decode('utf-8'))
+
+        self.assertEqual('healthy', resp_json['metadatabase']['status'])
+        self.assertEqual('unhealthy', resp_json['scheduler']['status'])
+        self.assertEqual(str(last_scheduler_heartbeat_for_testing_2),
+                         resp_json['scheduler']['latest_scheduler_heartbeat'])
+
+        self.session.query(BaseJob).\
+            filter(BaseJob.job_type == 'SchedulerJob',
+                   BaseJob.state == 'running',
+                   BaseJob.latest_heartbeat == last_scheduler_heartbeat_for_testing_2).\
+            delete()
+        self.session.commit()
+
+        # case-3: unhealthy scheduler status - scenario 2 (no running SchedulerJob)
+        self.session.query(BaseJob).\
+            filter(BaseJob.job_type == 'SchedulerJob',
+                   BaseJob.state == 'running').\
+            delete()
+        self.session.commit()
+
+        resp_json = json.loads(self.client.get('health', follow_redirects=True).data.decode('utf-8'))
+
+        self.assertEqual('healthy', resp_json['metadatabase']['status'])
+        self.assertEqual('unhealthy', resp_json['scheduler']['status'])
+        self.assertEqual('None',
+                         resp_json['scheduler']['latest_scheduler_heartbeat'])
 
     def test_home(self):
         resp = self.client.get('home', follow_redirects=True)
@@ -443,11 +516,44 @@ class TestAirflowBaseViews(TestBase):
         resp = self.client.get('refresh?dag_id=example_bash_operator')
         self.check_content_in_response('', resp, resp_code=302)
 
+    def test_delete_dag_button_normal(self):
+        resp = self.client.get('/', follow_redirects=True)
+        self.check_content_in_response('/delete?dag_id=example_bash_operator', resp)
+        self.check_content_in_response("return confirmDeleteDag('example_bash_operator')", resp)
+
+    def test_delete_dag_button_for_dag_on_scheduler_only(self):
+        # Test for JIRA AIRFLOW-3233 (PR 4069):
+        # The delete-dag URL should be generated correctly for DAGs
+        # that exist on the scheduler (DB) but not the webserver DagBag
+
+        test_dag_id = "non_existent_dag"
+
+        DM = models.DagModel
+        self.session.query(DM).filter(DM.dag_id == 'example_bash_operator').update({'dag_id': test_dag_id})
+        self.session.commit()
+
+        resp = self.client.get('/', follow_redirects=True)
+        self.check_content_in_response('/delete?dag_id={}'.format(test_dag_id), resp)
+        self.check_content_in_response("return confirmDeleteDag('{}')".format(test_dag_id), resp)
+
+        self.session.query(DM).filter(DM.dag_id == test_dag_id).update({'dag_id': 'example_bash_operator'})
+        self.session.commit()
+
 
 class TestConfigurationView(TestBase):
-    def test_configuration(self):
+    def test_configuration_do_not_expose_config(self):
         self.logout()
         self.login()
+        conf.set("webserver", "expose_config", "False")
+        resp = self.client.get('configuration', follow_redirects=True)
+        self.check_content_in_response(
+            ['Airflow Configuration', '# Your Airflow administrator chose not to expose the configuration, '
+                                      'most likely for security reasons.'], resp)
+
+    def test_configuration_expose_config(self):
+        self.logout()
+        self.login()
+        conf.set("webserver", "expose_config", "True")
         resp = self.client.get('configuration', follow_redirects=True)
         self.check_content_in_response(
             ['Airflow Configuration', 'Running Configuration'], resp)
@@ -488,17 +594,16 @@ class TestLogView(TestBase):
         self.app.config['WTF_CSRF_ENABLED'] = False
         self.client = self.app.test_client()
         settings.configure_orm()
-        self.session = Session
         self.login()
 
         from airflow.www_rbac.views import dagbag
         dag = DAG(self.DAG_ID, start_date=self.DEFAULT_DATE)
         task = DummyOperator(task_id=self.TASK_ID, dag=dag)
         dagbag.bag_dag(dag, parent_dag=dag, root_dag=dag)
-        ti = TaskInstance(task=task, execution_date=self.DEFAULT_DATE)
-        ti.try_number = 1
-        self.session.merge(ti)
-        self.session.commit()
+        with create_session() as session:
+            self.ti = TaskInstance(task=task, execution_date=self.DEFAULT_DATE)
+            self.ti.try_number = 1
+            session.merge(self.ti)
 
     def tearDown(self):
         logging.config.dictConfig(DEFAULT_LOGGING_CONFIG)
@@ -510,14 +615,53 @@ class TestLogView(TestBase):
         self.logout()
         super(TestLogView, self).tearDown()
 
-    def test_get_file_task_log(self):
+    @parameterized.expand([
+        [State.NONE, 0, 0],
+        [State.UP_FOR_RETRY, 2, 2],
+        [State.UP_FOR_RESCHEDULE, 0, 1],
+        [State.UP_FOR_RESCHEDULE, 1, 2],
+        [State.RUNNING, 1, 1],
+        [State.SUCCESS, 1, 1],
+        [State.FAILED, 3, 3],
+    ])
+    def test_get_file_task_log(self, state, try_number, expected_num_logs_visible):
+        with create_session() as session:
+            self.ti.state = state
+            self.ti.try_number = try_number
+            session.merge(self.ti)
+
         response = self.client.get(
             TestLogView.ENDPOINT, data=dict(
                 username='test',
                 password='test'), follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn('Log by attempts',
-                      response.data.decode('utf-8'))
+        self.assertIn('Log by attempts', response.data.decode('utf-8'))
+        for num in range(1, expected_num_logs_visible + 1):
+            self.assertIn('try-{}'.format(num), response.data.decode('utf-8'))
+        self.assertNotIn('try-0', response.data.decode('utf-8'))
+        self.assertNotIn('try-{}'.format(expected_num_logs_visible + 1), response.data.decode('utf-8'))
+
+    def test_get_logs_with_metadata_as_download_file(self):
+        url_template = "get_logs_with_metadata?dag_id={}&" \
+                       "task_id={}&execution_date={}&" \
+                       "try_number={}&metadata={}&format=file"
+        try_number = 1
+        url = url_template.format(self.DAG_ID,
+                                  self.TASK_ID,
+                                  quote_plus(self.DEFAULT_DATE.isoformat()),
+                                  try_number,
+                                  json.dumps({}))
+        response = self.client.get(url)
+        expected_filename = '{}/{}/{}/{}.log'.format(self.DAG_ID,
+                                                     self.TASK_ID,
+                                                     self.DEFAULT_DATE.isoformat(),
+                                                     try_number)
+
+        content_disposition = response.headers.get('Content-Disposition')
+        self.assertTrue(content_disposition.startswith('attachment'))
+        self.assertTrue(expected_filename in content_disposition)
+        self.assertEqual(200, response.status_code)
+        self.assertIn('Log for testing.', response.data.decode('utf-8'))
 
     def test_get_logs_with_metadata(self):
         url_template = "get_logs_with_metadata?dag_id={}&" \
@@ -962,6 +1106,9 @@ class TestDagACLView(TestBase):
         all_dag_role = self.appbuilder.sm.find_role('all_dag_role')
         self.appbuilder.sm.add_permission_role(all_dag_role, perm_on_all_dag)
 
+        role_user = self.appbuilder.sm.find_role('User')
+        self.appbuilder.sm.add_permission_role(role_user, perm_on_all_dag)
+
         read_only_perm_on_dag = self.appbuilder.sm.\
             find_permission_view_menu('can_dag_read', 'example_bash_operator')
         dag_read_only_role = self.appbuilder.sm.find_role('dag_acl_read_only')
@@ -1373,6 +1520,48 @@ class TestDagACLView(TestBase):
         resp = self.client.get(url, follow_redirects=True)
         self.check_content_in_response('"message":', resp)
         self.check_content_in_response('"metadata":', resp)
+
+
+class TestTaskInstanceView(TestBase):
+    TI_ENDPOINT = '/taskinstance/list/?_flt_0_execution_date={}'
+
+    def test_start_date_filter(self):
+        resp = self.client.get(self.TI_ENDPOINT.format(
+            self.percent_encode('2018-10-09 22:44:31')))
+        # We aren't checking the logic of the date filter itself (that is built
+        # in to FAB) but simply that our UTC conversion was run - i.e. it
+        # doesn't blow up!
+        self.check_content_in_response('List Task Instance', resp)
+        pass
+
+
+class TestTriggerDag(TestBase):
+
+    def setUp(self):
+        super(TestTriggerDag, self).setUp()
+        self.session = Session()
+        models.DagBag().get_dag("example_bash_operator").sync_to_db(session=self.session)
+
+    def test_trigger_dag_button_normal_exist(self):
+        resp = self.client.get('/', follow_redirects=True)
+        self.assertIn('/trigger?dag_id=example_bash_operator', resp.data.decode('utf-8'))
+        self.assertIn("return confirmDeleteDag('example_bash_operator')", resp.data.decode('utf-8'))
+
+    @unittest.skipIf('mysql' in conf.conf.get('core', 'sql_alchemy_conn'),
+                     "flaky when run on mysql")
+    def test_trigger_dag_button(self):
+
+        test_dag_id = "example_bash_operator"
+
+        DR = models.DagRun
+        self.session.query(DR).delete()
+        self.session.commit()
+
+        self.client.get('trigger?dag_id={}'.format(test_dag_id))
+
+        run = self.session.query(DR).filter(DR.dag_id == test_dag_id).first()
+        self.assertIsNotNone(run)
+        self.assertIn("manual__", run.run_id)
 
 
 if __name__ == '__main__':

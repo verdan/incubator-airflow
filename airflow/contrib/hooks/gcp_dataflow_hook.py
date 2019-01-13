@@ -23,7 +23,7 @@ import subprocess
 import time
 import uuid
 
-from apiclient.discovery import build
+from googleapiclient.discovery import build
 
 from airflow.contrib.hooks.gcp_api_base_hook import GoogleCloudBaseHook
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -141,7 +141,7 @@ class _Dataflow(LoggingMixin):
     def _extract_job(line):
         # Job id info: https://goo.gl/SE29y9.
         job_id_pattern = re.compile(
-            b'.*console.cloud.google.com/dataflow.*/jobs/([a-z|0-9|A-Z|\-|\_]+).*')
+            br'.*console.cloud.google.com/dataflow.*/jobs/([a-z|0-9|A-Z|\-|\_]+).*')
         matched_job = job_id_pattern.search(line or '')
         if matched_job:
             return matched_job.group(1).decode()
@@ -220,6 +220,7 @@ class DataFlowHook(GoogleCloudBaseHook):
 
     def start_template_dataflow(self, job_name, variables, parameters, dataflow_template,
                                 append_job_name=True):
+        variables = self._set_variables(variables)
         name = self._build_dataflow_job_name(job_name, append_job_name)
         self._start_template_dataflow(
             name, variables, parameters, dataflow_template)
@@ -278,8 +279,9 @@ class DataFlowHook(GoogleCloudBaseHook):
                 "parameters": parameters,
                 "environment": environment}
         service = self.get_conn()
-        request = service.projects().templates().launch(
+        request = service.projects().locations().templates().launch(
             projectId=variables['project'],
+            location=variables['region'],
             gcsPath=dataflow_template,
             body=body
         )

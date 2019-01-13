@@ -41,7 +41,7 @@ const config = {
     tree: `${STATIC_DIR}/js/tree.js`,
     ganttChartD3v2: `${STATIC_DIR}/js/gantt-chart-d3v2.js`,
     main: `${STATIC_DIR}/css/main.css`,
-    airflowDefaultTheme : `${STATIC_DIR}/css/bootstrap-theme.css`,
+    airflowDefaultTheme: `${STATIC_DIR}/css/bootstrap-theme.css`,
   },
   output: {
     path: BUILD_DIR,

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import {converAndFormatUTC, generateTooltipDateTime} from './datetime-utils';
+import { generateTooltipDateTime, converAndFormatUTC, secondsToString } from './datetime-utils';
 import {callTaskInstanceModal} from './ti-modal';
 
 // Assigning css classes based on state to nodes
@@ -39,7 +39,7 @@ function updateNodesStates(task_instances) {
           tt += "run_id: <nobr>" + ti.run_id + "</nobr><br>";
         }
         tt += "Operator: " + ti.operator + "<br>";
-        tt += "Duration: " + ti.duration + "<br>";
+        tt += "Duration: " + secondsToString(ti.duration) + "<br>";
         tt += "State: " + ti.state + "<br>";
         tt += generateTooltipDateTime(ti.start_date, ti.end_date, dagTZ);
         return tt;
@@ -75,7 +75,7 @@ function initRefreshButton() {
 function initTaskInstanceModal() {
   d3.selectAll("g.node").on("click", function (ti) {
     const task = tasks[ti];
-    if (task.task_type == "SubDagOperator")
+    if (task.task_type === "SubDagOperator")
       callTaskInstanceModal(task.dag_id, ti, execution_date, true);
     else
       callTaskInstanceModal(task.dag_id, ti, execution_date);
