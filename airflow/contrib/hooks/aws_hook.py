@@ -151,10 +151,14 @@ class AwsHook(BaseHook):
                     aws_session_token = credentials['SessionToken']
 
                 endpoint_url = extra_config.get('host')
+                logging.error("ENDPOINT URL")
+                logging.error(endpoint_url)
 
-            except AirflowException:
+            except AirflowException as ex:
                 # No connection found: fallback on boto3 credential strategy
                 # http://boto3.readthedocs.io/en/latest/guide/configuration.html
+                logging.error("ERROR ERROR ERROR")
+                logging.error(str(ex))
                 pass
 
         return boto3.session.Session(
